@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xiaolong game趣味数学游戏</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 统一的 Tailwind 配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#f97316',
+                        success: '#22c55e',
+                        danger: '#ef4444',
+                        neutral: '#f3f4f6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                    animation: {
+                        'bounce-light': 'bounce 0.5s ease-in-out 2',
+                        'fade-in': 'fadeIn 0.5s ease-in-out',
+                        'fade-out': 'fadeOut 0.5s ease-in-out',
+                        'slide-in': 'slideIn 0.5s ease-in-out',
+                    },
+                    keyframes: {
+                        fadeIn: {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' },
+                        },
+                        fadeOut: {
+                            '0%': { opacity: '1' },
+                            '100%': { opacity: '0' },
+                        },
+                        slideIn: {
+                            '0%': { transform: 'translateY(20px)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .text-shadow {
+                text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            }
+            .btn-bounce:active {
+                transform: scale(0.95);
+            }
+            .progress-bar {
+                transition: width 0.3s ease-in-out;
+            }
+            .correct-answer {
+                animation: correctPulse 0.5s ease-in-out;
+            }
+            .wrong-answer {
+                animation: wrongShake 0.5s ease-in-out;
+            }
+            @keyframes correctPulse {
+                0% { background-color: rgba(34, 197, 94, 0); }
+                50% { background-color: rgba(34, 197, 94, 0.2); }
+                100% { background-color: rgba(34, 197, 94, 0); }
+            }
+            @keyframes wrongShake {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-5px); }
+                75% { transform: translateX(5px); }
+            }
+            .hero-pulse {
+                animation: heroPulse 2s infinite;
+            }
+            @keyframes heroPulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.05); }
+                100% { transform: scale(1); }
+            }
+            .float-animation {
+                animation: float 3s ease-in-out infinite;
+            }
+            @keyframes float {
+                0% { transform: translateY(0px); }
+                50% { transform: translateY(-10px); }
+                100% { transform: translateY(0px); }
+            }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans">
+    <!-- 主题开始页面 -->
+    <div id="hero-screen" class="fixed inset-0 flex flex-col items-center justify-center bg-cover bg-center z-50" style="background-image: url('https://p3-flow-imagex-sign.byteimg.com/tos-cn-i-a9rns2rl98/rc/pc/super_tool/84457e415968467f97ac0d6fff0e9f77~tplv-a9rns2rl98-image.image?rcl=2025120312354105AE2D16F0EA45B2739A&rk3s=8e244e95&rrcfp=f06b921b&x-expires=1767328563&x-signature=dnADnk9XgUcrEXU65xlsu53X8R0%3D');">
+        <div class="absolute inset-0 bg-blue-900 bg-opacity-50"></div>
+        <div class="absolute top-4 right-4 text-white font-medium z-20 text-lg">XiaoLong Game</div>
+        <div class="relative z-10 text-center px-4 hero-pulse">
+            <h1 class="text-6xl md:text-7xl font-bold text-white mb-6 text-shadow">趣味数学游戏</h1>
+            <p class="text-xl md:text-2xl text-white mb-10 max-w-2xl mx-auto">挑战你的计算能力，提升数学技巧！</p>
+            <button id="enter-game" class="bg-secondary hover:bg-orange-600 text-white font-bold py-4 px-10 rounded-full transition-all btn-bounce text-xl shadow-lg hover:shadow-xl float-animation">
+                开始游戏
+            </button>
+        </div>
+    </div>
+
+    <div class="container mx-auto px-4 py-8 max-w-3xl">
+        <!-- 游戏标题 -->
+        <header class="text-center mb-8 animate-fade-in">
+            <h1 class="text-4xl font-bold text-primary mb-2 text-shadow">趣味数学游戏</h1>
+            <p class="text-gray-600">挑战你的计算能力，提升数学技巧！</p>
+        </header>
+
+        <!-- 开始界面 -->
+        <div id="start-screen" class="bg-white rounded-xl shadow-lg p-6 mb-6 animate-slide-in relative">
+            <div class="absolute top-4 right-4 text-sm text-gray-500 font-medium">XiaoLong Game</div>
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">游戏设置</h2>
+            
+            <!-- 难度选择 -->
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">难度级别</label>
+                <div class="grid grid-cols-3 gap-4">
+                    <button id="easy" class="difficulty-btn bg-blue-100 hover:bg-blue-200 text-primary font-medium py-2 px-4 rounded-lg transition-all btn-bounce border-2 border-transparent">
+                        简单
+                    </button>
+                    <button id="medium" class="difficulty-btn bg-blue-100 hover:bg-blue-200 text-primary font-medium py-2 px-4 rounded-lg transition-all btn-bounce border-2 border-transparent">
+                        中等
+                    </button>
+                    <button id="hard" class="difficulty-btn bg-blue-100 hover:bg-blue-200 text-primary font-medium py-2 px-4 rounded-lg transition-all btn-bounce border-2 border-transparent">
+                        困难
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 题目类型选择 -->
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">题目类型</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="flex items-center p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-all">
+                        <input type="checkbox" id="addition" class="form-checkbox h-5 w-5 text-primary rounded" checked>
+                        <span class="ml-2 text-gray-700">加法 (+)</span>
+                    </label>
+                    <label class="flex items-center p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-all">
+                        <input type="checkbox" id="subtraction" class="form-checkbox h-5 w-5 text-primary rounded" checked>
+                        <span class="ml-2 text-gray-700">减法 (-)</span>
+                    </label>
+                    <label class="flex items-center p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-all">
+                        <input type="checkbox" id="multiplication" class="form-checkbox h-5 w-5 text-primary rounded">
+                        <span class="ml-2 text-gray-700">乘法 (×)</span>
+                    </label>
+                    <label class="flex items-center p-3 bg-gray-100 rounded-lg cursor-pointer hover:bg-gray-200 transition-all">
+                        <input type="checkbox" id="division" class="form-checkbox h-5 w-5 text-primary rounded">
+                        <span class="ml-2 text-gray-700">除法 (÷)</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- 题数设定 -->
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">题目数量: <span id="question-count-display">20</span> 题</label>
+                <input type="range" id="question-count" min="10" max="100" step="5" value="20" 
+                       class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                <div class="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>10题</span>
+                    <span>100题</span>
+                </div>
+            </div>
+            
+            <!-- 按钮区域 -->
+            <div class="grid grid-cols-2 gap-4">
+                <button id="start-game" class="bg-secondary hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition-all btn-bounce text-lg">
+                    开始游戏
+                </button>
+                <button id="back-to-hero" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-all btn-bounce text-lg">
+                    返回首页
+                </button>
+            </div>
+        </div>
+
+        <!-- 游戏界面 -->
+        <div id="game-screen" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden animate-slide-in">
+            <!-- 暂停菜单 -->
+            <div id="pause-menu" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 hidden">
+                <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full animate-fade-in">
+                    <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">游戏暂停</h2>
+                    <div class="grid grid-cols-1 gap-4">
+                        <button id="resume-game" class="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all btn-bounce text-lg">
+                            继续游戏
+                        </button>
+                        <button id="restart-game" class="bg-secondary hover:bg-orange-600 text-white font-bold py-3 px-6 rounded-lg transition-all btn-bounce text-lg">
+                            重新开始
+                        </button>
+                        <button id="quit-to-settings" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-all btn-bounce text-lg">
+                            返回设置
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <!-- 游戏信息 -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center">
+                    <span class="text-gray-700 font-medium mr-2">难度:</span>
+                    <span id="game-difficulty" class="bg-blue-100 text-primary px-3 py-1 rounded-full text-sm font-medium">简单</span>
+                </div>
+                <div class="flex items-center">
+                    <i class="fa fa-clock-o text-gray-700 mr-2"></i>
+                    <span id="timer" class="font-mono text-lg font-bold text-gray-800">00:00</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="text-gray-700 font-medium mr-2">进度:</span>
+                    <span id="progress-text" class="font-medium text-gray-800">0/20</span>
+                </div>
+                <div>
+                    <button id="pause-game" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-1 px-3 rounded-lg transition-all btn-bounce">
+                        <i class="fa fa-pause mr-1"></i> 暂停
+                    </button>
+                </div>
+            </div>
+            
+            <!-- 进度条 -->
+            <div class="w-full bg-gray-200 rounded-full h-3 mb-8">
+                <div id="progress-bar" class="bg-primary h-3 rounded-full progress-bar" style="width: 0%"></div>
+            </div>
+            
+            <!-- 题目区域 -->
+            <div id="question-container" class="text-center mb-8">
+                <div id="question" class="text-4xl font-bold text-gray-800 mb-6">8 + 5 = ?</div>
+                <div class="flex justify-center">
+                    <input type="number" id="answer-input" class="w-32 text-2xl text-center border-2 border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" autofocus>
+                </div>
+            </div>
+            
+            <!-- 反馈区域 -->
+            <div id="feedback" class="text-center mb-6 h-8">
+                <!-- 反馈信息将在这里显示 -->
+            </div>
+            
+            <!-- 提交按钮 -->
+            <button id="submit-answer" class="w-full bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all btn-bounce text-lg">
+                提交答案
+            </button>
+        </div>
+
+        <!-- 结果界面 -->
+        <div id="result-screen" class="bg-white rounded-xl shadow-lg p-6 mb-6 hidden animate-slide-in">
+            <h2 class="text-2xl font-bold text-center text-gray-800 mb-6">游戏结束!</h2>
+            
+            <!-- 成绩统计 -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">总题数</span>
+                        <span id="total-questions" class="font-bold text-gray-800">20</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">正确题数</span>
+                        <span id="correct-questions" class="font-bold text-success">18</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">错误题数</span>
+                        <span id="wrong-questions" class="font-bold text-danger">2</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">正确率</span>
+                        <span id="accuracy" class="font-bold text-gray-800">90%</span>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">用时</span>
+                        <span id="total-time" class="font-bold text-gray-800">01:24</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">平均每题用时</span>
+                        <span id="avg-time" class="font-bold text-gray-800">4.2秒</span>
+                    </div>
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-700">最快答题</span>
+                        <span id="fastest-time" class="font-bold text-success">1.8秒</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">最慢答题</span>
+                        <span id="slowest-time" class="font-bold text-danger">7.5秒</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 评价 -->
+            <div id="evaluation" class="text-center mb-8 p-4 bg-gray-50 rounded-lg">
+                <p class="text-lg font-medium text-gray-700">太棒了！你的数学能力非常出色！</p>
+            </div>
+            
+            <!-- 操作按钮 -->
+            <div class="grid grid-cols-2 gap-4">
+                <button id="retry" class="bg-primary hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-lg transition-all btn-bounce">
+                    再玩一次
+                </button>
+                <button id="back-to-start" class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition-all btn-bounce">
+                    返回设置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 游戏状态
+        const gameState = {
+            difficulty: 'easy',
+            questionTypes: ['addition', 'subtraction'],
+            questionCount: 20,
+            currentQuestion: 0,
+            correctAnswers: 0,
+            wrongAnswers: 0,
+            startTime: 0,
+            endTime: 0,
+            questionTimes: [],
+            currentQuestionStartTime: 0,
+            questions: [],
+            isPaused: false,
+            pausedTime: 0
+        };
+
+        // DOM 元素
+        const startScreen = document.getElementById('start-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        
+        const difficultyBtns = document.querySelectorAll('.difficulty-btn');
+        const questionCountSlider = document.getElementById('question-count');
+        const questionCountDisplay = document.getElementById('question-count-display');
+        const startGameBtn = document.getElementById('start-game');
+        
+        const gameDifficulty = document.getElementById('game-difficulty');
+        const timer = document.getElementById('timer');
+        const progressText = document.getElementById('progress-text');
+        const progressBar = document.getElementById('progress-bar');
+        const question = document.getElementById('question');
+        const answerInput = document.getElementById('answer-input');
+        const feedback = document.getElementById('feedback');
+        const submitAnswerBtn = document.getElementById('submit-answer');
+        
+        const totalQuestionsEl = document.getElementById('total-questions');
+        const correctQuestionsEl = document.getElementById('correct-questions');
+        const wrongQuestionsEl = document.getElementById('wrong-questions');
+        const accuracyEl = document.getElementById('accuracy');
+        const totalTimeEl = document.getElementById('total-time');
+        const avgTimeEl = document.getElementById('avg-time');
+        const fastestTimeEl = document.getElementById('fastest-time');
+        const slowestTimeEl = document.getElementById('slowest-time');
+        const evaluationEl = document.getElementById('evaluation');
+        
+        const retryBtn = document.getElementById('retry');
+        const backToStartBtn = document.getElementById('back-to-start');
+
+        // 初始化
+        function init() {
+            // 获取主题页面元素
+            const heroScreen = document.getElementById('hero-screen');
+            const enterGameBtn = document.getElementById('enter-game');
+            
+            // 设置进入游戏按钮点击事件
+            enterGameBtn.addEventListener('click', () => {
+                // 隐藏主题页面
+                heroScreen.classList.add('animate-fade-out');
+                setTimeout(() => {
+                    heroScreen.classList.add('hidden');
+                }, 500);
+            });
+            
+            // 设置难度按钮点击事件
+            difficultyBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // 移除所有按钮的选中状态
+                    difficultyBtns.forEach(b => {
+                        b.classList.remove('bg-primary', 'text-white');
+                        b.classList.add('bg-blue-100', 'text-primary');
+                        b.classList.remove('border-primary');
+                        b.classList.add('border-transparent');
+                    });
+                    
+                    // 设置当前按钮为选中状态
+                    btn.classList.remove('bg-blue-100', 'text-primary');
+                    btn.classList.add('bg-primary', 'text-white');
+                    btn.classList.remove('border-transparent');
+                    btn.classList.add('border-primary');
+                    
+                    // 更新游戏状态
+                    gameState.difficulty = btn.id;
+                });
+            });
+            
+            // 设置题数滑块事件
+            questionCountSlider.addEventListener('input', () => {
+                gameState.questionCount = parseInt(questionCountSlider.value);
+                questionCountDisplay.textContent = gameState.questionCount;
+            });
+            
+            // 设置开始游戏按钮点击事件
+            startGameBtn.addEventListener('click', startGame);
+            
+            // 设置返回首页按钮点击事件
+            const backToHeroBtn = document.getElementById('back-to-hero');
+            backToHeroBtn.addEventListener('click', () => {
+                // 获取开始界面元素
+                const startScreen = document.getElementById('start-screen');
+                
+                // 添加淡出动画
+                startScreen.classList.add('animate-fade-out');
+                
+                // 延迟执行返回首页操作
+                setTimeout(() => {
+                    backToStart();
+                }, 500);
+            });
+            
+            // 设置提交答案按钮点击事件
+            submitAnswerBtn.addEventListener('click', checkAnswer);
+            
+            // 设置答案输入框回车事件
+            answerInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    checkAnswer();
+                }
+            });
+            
+            // 设置再玩一次按钮点击事件
+            retryBtn.addEventListener('click', retryGame);
+            
+            // 设置返回设置按钮点击事件
+            backToStartBtn.addEventListener('click', backToStart);
+            
+            // 设置暂停游戏按钮点击事件
+            const pauseGameBtn = document.getElementById('pause-game');
+            pauseGameBtn.addEventListener('click', pauseGame);
+            
+            // 设置继续游戏按钮点击事件
+            const resumeGameBtn = document.getElementById('resume-game');
+            resumeGameBtn.addEventListener('click', resumeGame);
+            
+            // 设置重新开始按钮点击事件
+            const restartGameBtn = document.getElementById('restart-game');
+            restartGameBtn.addEventListener('click', restartGame);
+            
+            // 设置退出到设置按钮点击事件
+            const quitToSettingsBtn = document.getElementById('quit-to-settings');
+            quitToSettingsBtn.addEventListener('click', () => {
+                // 先恢复游戏状态
+                resumeGame();
+                // 然后返回设置页面
+                backToStart();
+            });
+            
+            // 默认选中简单难度
+            document.getElementById('easy').click();
+        }
+
+        // 开始游戏
+        function startGame() {
+            // 获取选中的题目类型
+            gameState.questionTypes = [];
+            if (document.getElementById('addition').checked) gameState.questionTypes.push('addition');
+            if (document.getElementById('subtraction').checked) gameState.questionTypes.push('subtraction');
+            if (document.getElementById('multiplication').checked) gameState.questionTypes.push('multiplication');
+            if (document.getElementById('division').checked) gameState.questionTypes.push('division');
+            
+            // 如果没有选中任何题目类型，默认选择加减法
+            if (gameState.questionTypes.length === 0) {
+                gameState.questionTypes = ['addition', 'subtraction'];
+                document.getElementById('addition').checked = true;
+                document.getElementById('subtraction').checked = true;
+            }
+            
+            // 重置游戏状态
+            gameState.currentQuestion = 0;
+            gameState.correctAnswers = 0;
+            gameState.wrongAnswers = 0;
+            gameState.questionTimes = [];
+            
+            // 生成题目
+            generateQuestions();
+            
+            // 更新游戏界面
+            updateGameInfo();
+            
+            // 显示游戏界面
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            
+            // 开始计时
+            startTimer();
+            
+            // 显示第一题
+            showNextQuestion();
+        }
+
+        // 生成题目
+        function generateQuestions() {
+            gameState.questions = [];
+            
+            // 计算每种题型应出现的次数，确保题型平衡
+            const typeCount = gameState.questionTypes.length;
+            const questionsPerType = Math.floor(gameState.questionCount / typeCount);
+            const remainingQuestions = gameState.questionCount % typeCount;
+            
+            // 创建题型计数器
+            const typeCounters = {};
+            let remaining = remainingQuestions;
+            gameState.questionTypes.forEach(type => {
+                typeCounters[type] = questionsPerType + (remaining > 0 ? 1 : 0);
+                remaining--;
+            });
+            
+            // 创建题型数组的副本，用于随机选择
+            let availableTypes = [...gameState.questionTypes];
+            
+            for (let i = 0; i < gameState.questionCount; i++) {
+                // 随机选择题目类型，但确保每种类型出现次数大致相等
+                const typeIndex = Math.floor(Math.random() * availableTypes.length);
+                const type = availableTypes[typeIndex];
+                
+                // 减少该类型的剩余次数
+                typeCounters[type]--;
+                
+                // 如果该类型已达到目标次数，从可用类型中移除
+                if (typeCounters[type] <= 0) {
+                    availableTypes = availableTypes.filter(t => t !== type);
+                }
+                
+                let num1, num2, answer;
+                
+                // 根据难度和题目类型生成数字
+                switch (gameState.difficulty) {
+                    case 'easy':
+                        switch (type) {
+                            case 'addition':
+                                num1 = Math.floor(Math.random() * 10) + 1;
+                                num2 = Math.floor(Math.random() * 10) + 1;
+                                answer = num1 + num2;
+                                break;
+                            case 'subtraction':
+                                num1 = Math.floor(Math.random() * 10) + 1;
+                                num2 = Math.floor(Math.random() * num1) + 1;
+                                answer = num1 - num2;
+                                break;
+                            case 'multiplication':
+                                num1 = Math.floor(Math.random() * 5) + 1;
+                                num2 = Math.floor(Math.random() * 5) + 1;
+                                answer = num1 * num2;
+                                break;
+                            case 'division':
+                                num2 = Math.floor(Math.random() * 5) + 1;
+                                answer = Math.floor(Math.random() * 5) + 1;
+                                num1 = num2 * answer;
+                                break;
+                        }
+                        break;
+                        
+                    case 'medium':
+                        switch (type) {
+                            case 'addition':
+                                num1 = Math.floor(Math.random() * 100) + 20;
+                                num2 = Math.floor(Math.random() * 100) + 20;
+                                answer = num1 + num2;
+                                break;
+                            case 'subtraction':
+                                num1 = Math.floor(Math.random() * 150) + 50;
+                                num2 = Math.floor(Math.random() * 100) + 1;
+                                answer = num1 - num2;
+                                break;
+                            case 'multiplication':
+                                num1 = Math.floor(Math.random() * 15) + 5;
+                                num2 = Math.floor(Math.random() * 15) + 5;
+                                answer = num1 * num2;
+                                break;
+                            case 'division':
+                                num2 = Math.floor(Math.random() * 15) + 2;
+                                answer = Math.floor(Math.random() * 15) + 2;
+                                num1 = num2 * answer;
+                                break;
+                        }
+                        break;
+                        
+                    case 'hard':
+                        switch (type) {
+                            case 'addition':
+                                num1 = Math.floor(Math.random() * 200) + 50;
+                                num2 = Math.floor(Math.random() * 200) + 50;
+                                answer = num1 + num2;
+                                break;
+                            case 'subtraction':
+                                num1 = Math.floor(Math.random() * 300) + 100;
+                                num2 = Math.floor(Math.random() * 150) + 1;
+                                answer = num1 - num2;
+                                break;
+                            case 'multiplication':
+                                num1 = Math.floor(Math.random() * 20) + 10;
+                                num2 = Math.floor(Math.random() * 20) + 10;
+                                answer = num1 * num2;
+                                break;
+                            case 'division':
+                                num2 = Math.floor(Math.random() * 20) + 3;
+                                answer = Math.floor(Math.random() * 20) + 3;
+                                num1 = num2 * answer;
+                                break;
+                        }
+                        break;
+                }
+                
+                // 创建题目对象
+                const questionObj = {
+                    type: type,
+                    num1: num1,
+                    num2: num2,
+                    answer: answer
+                };
+                
+                gameState.questions.push(questionObj);
+            }
+        }
+
+        // 更新游戏信息
+        function updateGameInfo() {
+            // 更新难度显示
+            switch (gameState.difficulty) {
+                case 'easy':
+                    gameDifficulty.textContent = '简单';
+                    break;
+                case 'medium':
+                    gameDifficulty.textContent = '中等';
+                    break;
+                case 'hard':
+                    gameDifficulty.textContent = '困难';
+                    break;
+            }
+            
+            // 更新进度显示
+            progressText.textContent = `${gameState.currentQuestion}/${gameState.questionCount}`;
+            progressBar.style.width = `${(gameState.currentQuestion / gameState.questionCount) * 100}%`;
+        }
+
+        // 开始计时
+        function startTimer() {
+            gameState.startTime = Date.now();
+            gameState.currentQuestionStartTime = Date.now();
+            
+            // 更新计时器显示
+            updateTimer();
+            
+            // 每秒更新一次计时器
+            gameState.timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // 更新计时器显示
+        function updateTimer() {
+            if (gameState.isPaused) return;
+            
+            const elapsedTime = Math.floor((Date.now() - gameState.startTime - gameState.pausedTime) / 1000);
+            const minutes = Math.floor(elapsedTime / 60).toString().padStart(2, '0');
+            const seconds = (elapsedTime % 60).toString().padStart(2, '0');
+            timer.textContent = `${minutes}:${seconds}`;
+        }
+
+        // 显示下一题
+        function showNextQuestion() {
+            // 如果所有题目都已完成，显示结果
+            if (gameState.currentQuestion >= gameState.questionCount) {
+                endGame();
+                return;
+            }
+            
+            // 获取当前题目
+            const currentQuestion = gameState.questions[gameState.currentQuestion];
+            
+            // 更新题目显示
+            let operator;
+            switch (currentQuestion.type) {
+                case 'addition':
+                    operator = '+';
+                    break;
+                case 'subtraction':
+                    operator = '-';
+                    break;
+                case 'multiplication':
+                    operator = '×';
+                    break;
+                case 'division':
+                    operator = '÷';
+                    break;
+            }
+            
+            question.textContent = `${currentQuestion.num1} ${operator} ${currentQuestion.num2} = ?`;
+            
+            // 清空答案输入框并聚焦
+            answerInput.value = '';
+            answerInput.focus();
+            
+            // 清空反馈信息
+            feedback.innerHTML = '';
+            
+            // 更新游戏信息
+            updateGameInfo();
+            
+            // 记录当前题目开始时间
+            gameState.currentQuestionStartTime = Date.now();
+        }
+
+        // 检查答案
+        function checkAnswer() {
+            // 获取用户输入的答案
+            const userAnswer = parseInt(answerInput.value);
+            
+            // 如果用户没有输入答案，不做处理
+            if (isNaN(userAnswer)) {
+                return;
+            }
+            
+            // 获取当前题目
+            const currentQuestion = gameState.questions[gameState.currentQuestion];
+            
+            // 计算答题时间
+            const questionTime = (Date.now() - gameState.currentQuestionStartTime) / 1000;
+            gameState.questionTimes.push(questionTime);
+            
+            // 检查答案是否正确
+            if (userAnswer === currentQuestion.answer) {
+                // 答案正确
+                gameState.correctAnswers++;
+                showFeedback(true);
+            } else {
+                // 答案错误
+                gameState.wrongAnswers++;
+                showFeedback(false, currentQuestion.answer);
+            }
+            
+            // 延迟显示下一题
+            setTimeout(() => {
+                gameState.currentQuestion++;
+                showNextQuestion();
+            }, 500);
+        }
+
+        // 显示反馈
+        function showFeedback(isCorrect, correctAnswer) {
+            feedback.innerHTML = '';
+            
+            if (isCorrect) {
+                // 显示正确反馈
+                feedback.innerHTML = `
+                    <div class="flex justify-center items-center text-success animate-bounce-light">
+                        <i class="fa fa-check-circle text-2xl mr-2"></i>
+                        <span class="text-lg font-medium">回答正确!</span>
+                    </div>
+                `;
+                gameScreen.classList.add('correct-answer');
+                setTimeout(() => {
+                    gameScreen.classList.remove('correct-answer');
+                }, 500);
+            } else {
+                // 显示错误反馈
+                feedback.innerHTML = `
+                    <div class="flex justify-center items-center text-danger animate-bounce-light">
+                        <i class="fa fa-times-circle text-2xl mr-2"></i>
+                        <span class="text-lg font-medium">回答错误! 正确答案是 ${correctAnswer}</span>
+                    </div>
+                `;
+                gameScreen.classList.add('wrong-answer');
+                setTimeout(() => {
+                    gameScreen.classList.remove('wrong-answer');
+                }, 500);
+            }
+        }
+
+        // 结束游戏
+        function endGame() {
+            // 停止计时器
+            clearInterval(gameState.timerInterval);
+            gameState.endTime = Date.now();
+            
+            // 计算游戏时间
+            const totalTime = Math.floor((gameState.endTime - gameState.startTime) / 1000);
+            const minutes = Math.floor(totalTime / 60).toString().padStart(2, '0');
+            const seconds = (totalTime % 60).toString().padStart(2, '0');
+            
+            // 计算平均答题时间
+            const avgTime = gameState.questionTimes.reduce((sum, time) => sum + time, 0) / gameState.questionTimes.length;
+            
+            // 计算最快和最慢答题时间
+            const fastestTime = Math.min(...gameState.questionTimes);
+            const slowestTime = Math.max(...gameState.questionTimes);
+            
+            // 计算正确率
+            const accuracy = Math.round((gameState.correctAnswers / gameState.questionCount) * 100);
+            
+            // 更新结果显示
+            totalQuestionsEl.textContent = gameState.questionCount;
+            correctQuestionsEl.textContent = gameState.correctAnswers;
+            wrongQuestionsEl.textContent = gameState.wrongAnswers;
+            accuracyEl.textContent = `${accuracy}%`;
+            totalTimeEl.textContent = `${minutes}:${seconds}`;
+            avgTimeEl.textContent = `${avgTime.toFixed(1)}秒`;
+            fastestTimeEl.textContent = `${fastestTime.toFixed(1)}秒`;
+            slowestTimeEl.textContent = `${slowestTime.toFixed(1)}秒`;
+            
+            // 根据成绩给出评价
+            let evaluationText = '';
+            if (accuracy >= 90) {
+                evaluationText = '太棒了！你的数学能力非常出色！';
+            } else if (accuracy >= 80) {
+                evaluationText = '很好！你的数学水平相当不错！';
+            } else if (accuracy >= 70) {
+                evaluationText = '不错！继续努力，你会做得更好！';
+            } else if (accuracy >= 60) {
+                evaluationText = '还可以，多加练习会有进步！';
+            } else {
+                evaluationText = '需要更多练习，别灰心，继续努力！';
+            }
+            evaluationEl.innerHTML = `<p class="text-lg font-medium text-gray-700">${evaluationText}</p>`;
+            
+            // 显示结果界面
+            startScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+        }
+
+        // 再玩一次
+        function retryGame() {
+            // 重置游戏状态
+            gameState.currentQuestion = 0;
+            gameState.correctAnswers = 0;
+            gameState.wrongAnswers = 0;
+            gameState.questionTimes = [];
+            
+            // 生成新题目
+            generateQuestions();
+            
+            // 更新游戏界面
+            updateGameInfo();
+            
+            // 显示游戏界面
+            startScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            resultScreen.classList.add('hidden');
+            
+            // 开始计时
+            startTimer();
+            
+            // 显示第一题
+            showNextQuestion();
+        }
+
+        // 返回设置
+        function backToStart() {
+            // 获取主题页面元素
+            const heroScreen = document.getElementById('hero-screen');
+            
+            // 隐藏游戏和结果界面
+            gameScreen.classList.add('hidden');
+            resultScreen.classList.add('hidden');
+            
+            // 重置开始界面
+            startScreen.classList.remove('hidden', 'animate-fade-out');
+            
+            // 显示主题页面并添加淡入动画
+            heroScreen.classList.remove('hidden', 'animate-fade-out');
+            heroScreen.classList.add('animate-fade-in');
+            
+            // 移除淡入动画类，以便下次使用
+            setTimeout(() => {
+                heroScreen.classList.remove('animate-fade-in');
+            }, 500);
+        }
+
+        // 暂停游戏
+        function pauseGame() {
+            // 获取暂停菜单元素
+            const pauseMenu = document.getElementById('pause-menu');
+            
+            // 显示暂停菜单
+            pauseMenu.classList.remove('hidden');
+            
+            // 设置游戏状态为暂停
+            gameState.isPaused = true;
+            
+            // 记录暂停开始时间
+            gameState.pauseStartTime = Date.now();
+            
+            // 禁用答案输入框
+            answerInput.disabled = true;
+        }
+        
+        // 恢复游戏
+        function resumeGame() {
+            // 获取暂停菜单元素
+            const pauseMenu = document.getElementById('pause-menu');
+            
+            // 隐藏暂停菜单
+            pauseMenu.classList.add('hidden');
+            
+            // 设置游戏状态为非暂停
+            gameState.isPaused = false;
+            
+            // 更新总暂停时间
+            if (gameState.pauseStartTime) {
+                gameState.pausedTime += Date.now() - gameState.pauseStartTime;
+                gameState.pauseStartTime = null;
+            }
+            
+            // 启用答案输入框并聚焦
+            answerInput.disabled = false;
+            answerInput.focus();
+        }
+        
+        // 重新开始游戏
+        function restartGame() {
+            // 先恢复游戏状态
+            resumeGame();
+            
+            // 重置游戏状态
+            gameState.currentQuestion = 0;
+            gameState.correctAnswers = 0;
+            gameState.wrongAnswers = 0;
+            gameState.questionTimes = [];
+            gameState.pausedTime = 0;
+            
+            // 生成新题目
+            generateQuestions();
+            
+            // 更新游戏界面
+            updateGameInfo();
+            
+            // 重新开始计时
+            gameState.startTime = Date.now();
+            gameState.currentQuestionStartTime = Date.now();
+            
+            // 显示第一题
+            showNextQuestion();
+        }
+        
+        // 初始化游戏
+        window.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
